@@ -10,6 +10,12 @@
 		79702CD21DE36D0500883E6D /* Procedure.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79702CC81DE36D0500883E6D /* Procedure.framework */; };
 		79702CD71DE36D0500883E6D /* ProcedureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CD61DE36D0500883E6D /* ProcedureTests.swift */; };
 		79702CD91DE36D0500883E6D /* Procedure.h in Headers */ = {isa = PBXBuildFile; fileRef = 79702CCB1DE36D0500883E6D /* Procedure.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		79702CE31DE36E1900883E6D /* Procedure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE21DE36E1900883E6D /* Procedure.swift */; };
+		79702CE51DE36E2900883E6D /* Step.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE41DE36E2900883E6D /* Step.swift */; };
+		79702CE71DE36E3300883E6D /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE61DE36E3300883E6D /* Action.swift */; };
+		79702CE91DE36E3A00883E6D /* BanShoutGift.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE81DE36E3A00883E6D /* BanShoutGift.swift */; };
+		79702CEB1DE371C100883E6D /* Predicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CEA1DE371C100883E6D /* Predicate.swift */; };
+		79702D051DE9F3C500883E6D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702D041DE9F3C500883E6D /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +35,12 @@
 		79702CD11DE36D0500883E6D /* ProcedureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProcedureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		79702CD61DE36D0500883E6D /* ProcedureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcedureTests.swift; sourceTree = "<group>"; };
 		79702CD81DE36D0500883E6D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		79702CE21DE36E1900883E6D /* Procedure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Procedure.swift; sourceTree = "<group>"; };
+		79702CE41DE36E2900883E6D /* Step.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Step.swift; sourceTree = "<group>"; };
+		79702CE61DE36E3300883E6D /* Action.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
+		79702CE81DE36E3A00883E6D /* BanShoutGift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BanShoutGift.swift; sourceTree = "<group>"; };
+		79702CEA1DE371C100883E6D /* Predicate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predicate.swift; sourceTree = "<group>"; };
+		79702D041DE9F3C500883E6D /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +85,12 @@
 			children = (
 				79702CCB1DE36D0500883E6D /* Procedure.h */,
 				79702CCC1DE36D0500883E6D /* Info.plist */,
+				79702CE21DE36E1900883E6D /* Procedure.swift */,
+				79702CE41DE36E2900883E6D /* Step.swift */,
+				79702CE61DE36E3300883E6D /* Action.swift */,
+				79702CE81DE36E3A00883E6D /* BanShoutGift.swift */,
+				79702CEA1DE371C100883E6D /* Predicate.swift */,
+				79702D041DE9F3C500883E6D /* Utilities.swift */,
 			);
 			path = Procedure;
 			sourceTree = "<group>";
@@ -149,6 +167,7 @@
 					79702CC71DE36D0400883E6D = {
 						CreatedOnToolsVersion = 8.1;
 						DevelopmentTeam = XWA3XUFMA8;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Automatic;
 					};
 					79702CD01DE36D0500883E6D = {
@@ -198,6 +217,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79702D051DE9F3C500883E6D /* Utilities.swift in Sources */,
+				79702CE31DE36E1900883E6D /* Procedure.swift in Sources */,
+				79702CE91DE36E3A00883E6D /* BanShoutGift.swift in Sources */,
+				79702CEB1DE371C100883E6D /* Predicate.swift in Sources */,
+				79702CE71DE36E3300883E6D /* Action.swift in Sources */,
+				79702CE51DE36E2900883E6D /* Step.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,6 +347,7 @@
 		79702CDD1DE36D0500883E6D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = XWA3XUFMA8;
@@ -334,6 +360,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = io.acclaim.Procedure;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -341,6 +368,7 @@
 		79702CDE1DE36D0500883E6D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = XWA3XUFMA8;
@@ -360,6 +388,7 @@
 		79702CE01DE36D0500883E6D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = XWA3XUFMA8;
 				INFOPLIST_FILE = ProcedureTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -372,6 +401,7 @@
 		79702CE11DE36D0500883E6D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				DEVELOPMENT_TEAM = XWA3XUFMA8;
 				INFOPLIST_FILE = ProcedureTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -400,6 +430,7 @@
 				79702CDE1DE36D0500883E6D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		79702CDF1DE36D0500883E6D /* Build configuration list for PBXNativeTarget "ProcedureTests" */ = {
 			isa = XCConfigurationList;
@@ -408,6 +439,7 @@
 				79702CE11DE36D0500883E6D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
