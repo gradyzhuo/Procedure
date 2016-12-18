@@ -8,60 +8,20 @@
 
 import Foundation
 
-public protocol RunnableStep : Identitiable {
-    func run(withGifts: BanShoutGifts)
-}
-
-internal protocol _RunnableStep {
-    var _previous: RunnableStep? { set get }
-}
-
-public protocol SimpleStep : RunnableStep, SequenceStep {
-    var previous: RunnableStep? { get }
-    var next: SimpleStep? { set get }
-    
-    @discardableResult func `continue`<T:SimpleStep>(byStep step:T)->T
-}
-
-public protocol SequenceStep: RunnableStep {
-    var last:SimpleStep { get }
-
-}
-
-extension SimpleStep {
-    
-    public var last:SimpleStep{
-        var next: SimpleStep = self
-        
-        while let n = next.next {
-            next = n
-        }
-        
-        return next
-    }
-    
-}
-
-public protocol ActionTrigger {
-    var actions: [Action] { get }
-    
-    init(actions: [Action])
-    
-    func add(actions: [Action])
-}
-
 open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
 
-    internal var outputs: BanShoutGifts = []
+    internal var outputs: Intents = []
     
     public var identifier: String{ return queue.label }
     
     public internal(set) var actions: [Action] = []
+    
     public var next: SimpleStep?{
         didSet{
-            (next as? _RunnableStep).map{ [unowned self] nextStep in
-                var step = nextStep
-                step._previous = self
+            let current = self
+            (next as? _RunnableStep).map{nextStep in
+                var nextStep = nextStep
+                nextStep._previous = current
             }
         }
     }
@@ -71,26 +31,32 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         return _previous
     }
     
-    public var predicate: Predicate<BanShoutGifts>?
+    public var predicate: Predicate<Intents>?
     internal let dispatchGroup = DispatchGroup()
-    internal let queue = DispatchQueue(label: Utils.Generate.identifier)
+    internal let queue:DispatchQueue
     
     public convenience init(do task: @escaping Action.TaskBlock){
         self.init(action: Action(do: task))
     }
     
     public static func stepByStep<T: SimpleStep>(_ previousStep:T, action: Action)->Self{
+        var previousStep = previousStep
         let nextStep = self.init(actions: [action])
         previousStep.continue(byStep: nextStep)
         return nextStep
+    }
+    
+    public init(actions acts: [Action], queue q:DispatchQueue = DispatchQueue(label: Utils.Generate.identifier)){
+        queue = q
+        self.add(actions: acts)
     }
     
     public convenience init(action: Action) {
         self.init(actions: [action])
     }
     
-    public required init(actions acts: [Action] = []) {
-        self.add(actions: acts)
+    public required convenience init(actions acts: [Action] = []) {
+        self.init(actions: acts)
     }
     
     public func add(actions acts: [Action]){
@@ -102,39 +68,40 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         act.add(delegate: self)
     }
     
-    public func run(withGifts inputs: BanShoutGifts = []){
+    public func run(withGifts inputs: Intents = []){
+        let queue = self.queue
+        let group = self.dispatchGroup
+        let actions = self.actions
+        let current = self
         
-        DispatchQueue.main.async { [unowned self] _ in
+        DispatchQueue.main.async {
             
-            self.actions.forEach{ action in
-                self.dispatchGroup.enter()
-                action.run(withGifts: inputs, inQueue: self.queue)
+            actions.forEach{ action in
+                group.enter()
+                action.run(withGifts: inputs, inQueue: queue)
             }
             
-            self.dispatchGroup.notify(queue: DispatchQueue.main){
-                self.actionsDidFinish(original: inputs)
+            group.notify(queue: DispatchQueue.main){
+                current.actionsDidFinish(original: inputs)
             }
+            
         }
         
     }
     
-    internal func actionsDidFinish(original inputs: BanShoutGifts){
+    internal func actionsDidFinish(original inputs: Intents){
         self.goNext(withGifts: inputs+outputs)
     }
     
     
-    public func goNext(withGifts inputs: BanShoutGifts){
+    public func goNext(withGifts inputs: Intents){
         self.next?.run(withGifts: inputs)
-    }
-    
-    public func `continue`<T:SimpleStep>(byStep step:T)->T{
-        self.next = step
-        return step
     }
     
     public func `continue`(byAction action: Action)->Step{
         let nextStep = Step(actions: [action])
-        return self.continue(byStep: nextStep)
+        var current = self
+        return current.continue(byStep: nextStep)
     }
 }
 
@@ -149,6 +116,14 @@ public func ==<T:Hashable>(lhs: T, rhs: T)->Bool{
     return lhs.hashValue == rhs.hashValue
 }
 
+extension Step : Copyable{
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        let actionsCopy = self.actions.map{ $0.copy }
+        return Step(actions: actionsCopy)
+    }
+}
+
 extension Step {
     
     public func add(do block: @escaping Action.TaskBlock)->Action{
@@ -160,9 +135,9 @@ extension Step {
 
 
 extension Step : Action.Delegate {
-    public func action(_ action: Action, didCompletionWithOutput output: BanShoutGift?) {
+    public func action(_ action: Action, didCompletionWithOutput output: Intent?) {
         
-        if let gift = output {
+        if let gift = output{
             self.outputs.add(gift: gift)
         }
         dispatchGroup.leave()
@@ -170,16 +145,15 @@ extension Step : Action.Delegate {
     
 }
 
-//public struct MultipleOutputStep : RunnableStep {
-//    
-//    public var identifier: String
-//
-//    
-//    public var nexts: [RunnableStep]?
-//    public internal(set) var previous: RunnableStep?
-//    
-//    public func run(withBanShoutGifts BanShoutGifts: BanShoutGifts = []) {
-//        
-//    }
-//    
-//}
+extension Step {
+    
+    public internal(set) static var sharedSteps:[String:Step] = [:]
+    
+    public static func shared(forKey key: String)->Step?{
+        return sharedSteps[key]?.copy
+    }
+    
+    public func share(forKey key:String){
+        Step.sharedSteps[key] = self.copy
+    }
+}

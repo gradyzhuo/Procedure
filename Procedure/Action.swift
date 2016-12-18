@@ -8,32 +8,9 @@
 
 import Foundation
 
-public enum ActionResult {
-    case successWith(outcome: BanShoutGift?)
-    case failureWith(outcome: BanShoutGift?)
-    
-    public var outcome: BanShoutGift? {
-        switch self {
-        case let .successWith(outcome):
-            return outcome
-        case let .failureWith(outcome):
-            return outcome
-        }
-    }
-    
-    public static var success: ActionResult {
-        return .successWith(outcome: nil)
-    }
-    
-    public static var failure: ActionResult {
-        return .failureWith(outcome: nil)
-    }
-    
-}
-
 public protocol ActionDelegate {
     //optional
-    func action(_ action: Action, didCompletionWithOutput output: BanShoutGift?)
+    func action(_ action: Action, didCompletionWithOutput output: Intent?)
 }
 
 private let kDelegateId = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)//UnsafeRawPointer()
@@ -59,11 +36,34 @@ extension ActionDelegate{
 extension Action {
     //MARK: typealias defines
     public typealias Delegate = ActionDelegate
+    
+    public enum Result {
+        case succeedWith(outcome: Intent?)
+        case failureWith(outcome: ActionError?)
+        
+        public var outcome: Intent? {
+            switch self {
+            case let .succeedWith(outcome):
+                return outcome
+            case let .failureWith(outcome):
+                return outcome
+            }
+        }
+        
+        public static var succeed: Result {
+            return .succeedWith(outcome: nil)
+        }
+        
+        public static var failure: Result {
+            return .failureWith(outcome: nil)
+        }
+        
+    }
 }
 
 open class Action : Identitiable, Hashable {
     
-    public typealias TaskBlock = (BanShoutGifts, @escaping (ActionResult)->Void)->Void
+    public typealias TaskBlock = (Intents, @escaping (Result)->Void)->Void
     
     public internal(set) var delegates: [Delegate] = []
     public internal(set) var task: TaskBlock
@@ -95,19 +95,41 @@ open class Action : Identitiable, Hashable {
         self.task = task
     }
     
-    public func run(withGifts inputs: BanShoutGifts, inQueue queue: DispatchQueue){
+    public func run(withGifts inputs: Intents, inQueue queue: DispatchQueue){
         
+        let taskClosure = self.task
+        
+        let semaphore = DispatchSemaphore(value: 0)
+        var output: Result!
         let workItem = DispatchWorkItem {
-            self.task(inputs){ output in
-                self.delegates.forEach { $0.action(self, didCompletionWithOutput: output.outcome) }
+            taskClosure(inputs){ item in
+                output = item
+                semaphore.signal()
             }
-            
         }
+        
         queue.async(execute: workItem)
         self.runningItem = workItem
+        
+        semaphore.wait()
+        
+        let action = self
+        //Waitting for the completion handler be called.
+        self.delegates.forEach { $0.action(action, didCompletionWithOutput: output.outcome) }
+        
     }
 }
 
 public func ==(lhs: Action, rhs: Action)->Bool{
     return lhs.identifier == rhs.identifier
+}
+
+extension Action : Copyable {
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        let taskCopy = self.task
+        return Action(do: taskCopy)
+    }
+    
+    
 }
