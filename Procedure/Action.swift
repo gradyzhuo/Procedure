@@ -68,7 +68,11 @@ open class Action : Identitiable, Hashable {
     public internal(set) var delegates: [Delegate] = []
     public internal(set) var task: TaskBlock
 
-    internal var runningItem: DispatchWorkItem!
+    public var isCancelled:Bool{
+        return self.runningItem?.isCancelled ?? false
+    }
+    
+    internal var runningItem: DispatchWorkItem?
     
     public func add(delegate: Delegate){
         self.delegates.append(delegate)
@@ -98,24 +102,39 @@ open class Action : Identitiable, Hashable {
     public func run(withGifts inputs: Intents, inQueue queue: DispatchQueue){
         
         let taskClosure = self.task
+        let action = self
         
-        let semaphore = DispatchSemaphore(value: 0)
+//        let semaphore = DispatchSemaphore(value: 0)
         var output: Result!
         let workItem = DispatchWorkItem {
             taskClosure(inputs){ item in
                 output = item
-                semaphore.signal()
+//                semaphore.signal()
+                
+                
+                //Waitting for the completion handler be called.
+                action.delegates.forEach { $0.action(action, didCompletionWithOutput: output.outcome) }
             }
         }
         
         queue.async(execute: workItem)
         self.runningItem = workItem
         
-        semaphore.wait()
+//        semaphore.wait()
         
-        let action = self
-        //Waitting for the completion handler be called.
-        self.delegates.forEach { $0.action(action, didCompletionWithOutput: output.outcome) }
+        
+        
+    }
+    
+    
+    public func cancel(){
+        guard let runningItem = runningItem else {
+            return
+        }
+        
+        if !runningItem.isCancelled {
+            runningItem.cancel()
+        }
         
     }
 }

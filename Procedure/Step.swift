@@ -8,11 +8,23 @@
 
 import Foundation
 
+
+extension Step {
+    public enum Status {
+        case initialize
+        case running
+        case succeeded
+        case cancelled
+        case failed
+    }
+}
+
+internal let kGroup = DispatchSpecificKey<DispatchGroup>()
 open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
 
     internal var outputs: Intents = []
     
-    public var identifier: String{ return queue.label }
+    public var identifier: String
     
     public internal(set) var actions: [Action] = []
     
@@ -31,9 +43,10 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         return _previous
     }
     
-    public var predicate: Predicate<Intents>?
-    internal let dispatchGroup = DispatchGroup()
-    internal let queue:DispatchQueue
+    internal let autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency
+    internal let attributes: DispatchQueue.Attributes
+    internal let qos: DispatchQoS
+    internal let queue: DispatchQueue
     
     public convenience init(do task: @escaping Action.TaskBlock){
         self.init(action: Action(do: task))
@@ -46,8 +59,19 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         return nextStep
     }
     
-    public init(actions acts: [Action], queue q:DispatchQueue = DispatchQueue(label: Utils.Generate.identifier)){
-        queue = q
+    internal init(actions:[Action] = [], identifier: String = Utils.Generate.identifier, attributes: DispatchQueue.Attributes = .concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency = .inherit, qos: DispatchQoS = .userInteractive, other: Step? = nil){
+        self.autoreleaseFrequency = autoreleaseFrequency
+        self.attributes = attributes
+        self.qos = qos
+        self.identifier = identifier
+        
+        self.queue = DispatchQueue(label: identifier, qos: qos, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, target: other?.queue)
+        
+        self.add(actions: actions)
+    }
+    
+    public convenience init(actions acts: [Action], queue other:DispatchQueue){
+        self.init(identifier: other.label)
         self.add(actions: acts)
     }
     
@@ -56,11 +80,13 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
     }
     
     public required convenience init(actions acts: [Action] = []) {
-        self.init(actions: acts)
+        self.init(actions: acts, queue: DispatchQueue(label: Utils.Generate.identifier))
     }
     
     public func add(actions acts: [Action]){
-        acts.forEach{ self.add(action: $0) }
+        for act in acts {
+            self.add(action: act)
+        }
     }
     
     public func add(action act: Action){
@@ -68,23 +94,45 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         act.add(delegate: self)
     }
     
-    public func run(withGifts inputs: Intents = []){
+    public func remove(actions acts: [Action]){
+        for act in acts {
+            self.remove(action: act)
+        }
+    }
+    
+    public func remove(action act: Action){
+        actions = actions.filter {
+            return $0 != act
+        }
+        act.remove(delegate: self)
+    }
+    
+    public func run(with inputs: Intents = []){
+        DispatchQueue.main.async {
+            self._run(with: inputs)
+        }
+        
+    }
+    
+    public func cancel(){
+        for act in actions {
+            act.cancel()
+        }
+    }
+    
+    internal func _run(with inputs: Intents = []){
         let queue = self.queue
-        let group = self.dispatchGroup
-        let actions = self.actions
+        let group = DispatchGroup()
+        queue.setSpecific(key: kGroup, value: group)
         let current = self
         
-        DispatchQueue.main.async {
-            
-            actions.forEach{ action in
-                group.enter()
-                action.run(withGifts: inputs, inQueue: queue)
-            }
-            
-            group.notify(queue: DispatchQueue.main){
-                current.actionsDidFinish(original: inputs)
-            }
-            
+        self.actions.forEach{ action in
+            group.enter()
+            action.run(withGifts: inputs, inQueue: queue)
+        }
+        
+        group.notify(queue: DispatchQueue.main){
+            current.actionsDidFinish(original: inputs)
         }
         
     }
@@ -95,20 +143,30 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
     
     
     public func goNext(withGifts inputs: Intents){
-        self.next?.run(withGifts: inputs)
+        self.next?.run(with: inputs)
     }
     
     public func `continue`(byAction action: Action)->Step{
         let nextStep = Step(actions: [action])
-        var current = self
-        return current.continue(byStep: nextStep)
+        return self.continue(byStep: nextStep)
+    }
+    
+    public func `continue`(byActions actions: [Action])->Step{
+        let nextStep = Step(actions: actions)
+        return self.continue(byStep: nextStep)
+    }
+    
+    public func `continue`<T:SimpleStep>(byStep step:T)->T{
+        var last = self.last
+        last.next = step
+        return step
     }
 }
 
 extension Step : Hashable {
     
     public var hashValue: Int{
-        return self.identifier.hashValue
+        return identifier.hashValue
     }
 }
 
@@ -120,7 +178,9 @@ extension Step : Copyable{
     
     public func copy(with zone: NSZone? = nil) -> Any {
         let actionsCopy = self.actions.map{ $0.copy }
-        return Step(actions: actionsCopy)
+        let aCopy = Step(identifier: identifier, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, qos: qos)
+        aCopy.add(actions: actionsCopy)
+        return aCopy
     }
 }
 
@@ -137,10 +197,12 @@ extension Step {
 extension Step : Action.Delegate {
     public func action(_ action: Action, didCompletionWithOutput output: Intent?) {
         
+        let group:DispatchGroup! = queue.getSpecific(key: kGroup)
+        
         if let gift = output{
             self.outputs.add(gift: gift)
         }
-        dispatchGroup.leave()
+        group.leave()
     }
     
 }

@@ -9,7 +9,7 @@
 import Foundation
 
 public protocol RunnableStep : Identitiable {
-    func run(withGifts: Intents)
+    func run(with: Intents)
 }
 
 internal protocol _RunnableStep {
@@ -32,13 +32,6 @@ extension SimpleStep {
         
         return next
     }
-    
-    public mutating func `continue`<T:SimpleStep>(byStep step:T)->T{
-        var last = self.last
-        last.next = step
-        return step
-    }
-    
 }
 
 public protocol SequenceStep: RunnableStep {
@@ -62,5 +55,20 @@ public protocol ActionTrigger {
     
     init(actions: [Action])
     
-    func add(actions: [Action])
+    mutating func add(actions: [Action])
 }
+
+//extension Array : ActionTrigger where Element : Action {
+//    public var actions: [Action]{
+//        return self as! [Action]
+//    }
+//    
+//    public init(actions: [Action]) {
+//        self = [Action]() as! Array<_>
+//        
+//    }
+//    
+//    public mutating func add(actions: [Action]){
+//        
+//    }
+//}
