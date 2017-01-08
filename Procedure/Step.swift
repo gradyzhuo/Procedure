@@ -8,21 +8,21 @@
 
 import Foundation
 
-
 extension Step {
-    public enum Status {
-        case initialize
-        case running
-        case succeeded
-        case cancelled
-        case failed
+    
+    public enum FlowControl {
+        case next
+        case previous
+        case cancel
+        case finish
+        case jump(other: SimpleStep)
     }
 }
 
 internal let kGroup = DispatchSpecificKey<DispatchGroup>()
 open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
-
-    internal var outputs: Intents = []
+    
+    public typealias IntentType = Intent
     
     public var identifier: String
     
@@ -48,15 +48,14 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
     internal let qos: DispatchQoS
     internal let queue: DispatchQueue
     
-    public convenience init(do task: @escaping Action.TaskBlock){
-        self.init(action: Action(do: task))
+    public var maximum:Int = 10
+    
+    public var flowControls:(Intents)->FlowControl = { _ in
+        return .next
     }
     
-    public static func stepByStep<T: SimpleStep>(_ previousStep:T, action: Action)->Self{
-        var previousStep = previousStep
-        let nextStep = self.init(actions: [action])
-        previousStep.continue(byStep: nextStep)
-        return nextStep
+    public convenience init(do task: @escaping Action.TaskBlock){
+        self.init(action: Action(do: task))
     }
     
     internal init(actions:[Action] = [], identifier: String = Utils.Generate.identifier, attributes: DispatchQueue.Attributes = .concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency = .inherit, qos: DispatchQoS = .userInteractive, other: Step? = nil){
@@ -68,11 +67,12 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         self.queue = DispatchQueue(label: identifier, qos: qos, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, target: other?.queue)
         
         self.add(actions: actions)
+        
     }
     
     public convenience init(actions acts: [Action], queue other:DispatchQueue){
         self.init(identifier: other.label)
-        self.add(actions: acts)
+        self.add(actions: acts.map{ $0.copy })
     }
     
     public convenience init(action: Action) {
@@ -91,7 +91,6 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
     
     public func add(action act: Action){
         actions.append(act)
-        act.add(delegate: self)
     }
     
     public func remove(actions acts: [Action]){
@@ -104,11 +103,10 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         actions = actions.filter {
             return $0 != act
         }
-        act.remove(delegate: self)
     }
     
     public func run(with inputs: Intents = []){
-        DispatchQueue.main.async {
+        DispatchQueue.main.async {[unowned self] _ in
             self._run(with: inputs)
         }
         
@@ -126,24 +124,58 @@ open class Step : SimpleStep, ActionTrigger, _RunnableStep, SequenceStep {
         queue.setSpecific(key: kGroup, value: group)
         let current = self
         
+        let semaphore = DispatchSemaphore(value: maximum)
+        
+        var outputs: Intents = []
+        
         self.actions.forEach{ action in
             group.enter()
-            action.run(withGifts: inputs, inQueue: queue)
+            action.run(withGifts: inputs, inQueue: queue){[unowned self] action, result in
+                outputs.add(intents: result.outcomes)
+                
+                semaphore.signal()
+                group.leave()
+            }
+            
+            semaphore.wait()
+        }
+
+        group.notify(queue: DispatchQueue.main){
+            current.actionsDidFinish(original: inputs, outputs: outputs)
         }
         
-        group.notify(queue: DispatchQueue.main){
-            current.actionsDidFinish(original: inputs)
-        }
+        
         
     }
     
-    internal func actionsDidFinish(original inputs: Intents){
-        self.goNext(withGifts: inputs+outputs)
+    internal func actionsDidFinish(original inputs: Intents, outputs: Intents){
+        
+        let newInputs = inputs + outputs
+        
+        let control = flowControls(outputs)
+        switch control {
+        case .cancel:
+            print("cancelled")
+        case .finish:
+            print("finished")
+        case .next:
+            self.goNext(withGifts: newInputs)
+        case .previous:
+            self.back(withGifts: newInputs)
+            self.previous?.run(with: newInputs)
+        case .jump(let other):
+            other.run(with: newInputs)
+        }
+        
     }
     
     
     public func goNext(withGifts inputs: Intents){
         self.next?.run(with: inputs)
+    }
+    
+    public func back(withGifts inputs: Intents){
+        self.previous?.run(with: inputs)
     }
     
     public func `continue`(byAction action: Action)->Step{
@@ -180,6 +212,7 @@ extension Step : Copyable{
         let actionsCopy = self.actions.map{ $0.copy }
         let aCopy = Step(identifier: identifier, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, qos: qos)
         aCopy.add(actions: actionsCopy)
+        aCopy.flowControls = self.flowControls
         return aCopy
     }
 }
@@ -193,19 +226,6 @@ extension Step {
     }
 }
 
-
-extension Step : Action.Delegate {
-    public func action(_ action: Action, didCompletionWithOutput output: Intent?) {
-        
-        let group:DispatchGroup! = queue.getSpecific(key: kGroup)
-        
-        if let gift = output{
-            self.outputs.add(gift: gift)
-        }
-        group.leave()
-    }
-    
-}
 
 extension Step {
     

@@ -8,3 +8,6 @@
 
 import Foundation
 
+public class Procedure {
+    
+}

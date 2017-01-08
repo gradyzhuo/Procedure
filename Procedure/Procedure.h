@@ -6,7 +6,7 @@
 //  Copyright © 2016 Grady Zhuo. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+@import Foundation;
 
 //! Project version number for Procedure.
 FOUNDATION_EXPORT double ProcedureVersionNumber;

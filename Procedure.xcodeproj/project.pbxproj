@@ -17,6 +17,7 @@
 		79702CE91DE36E3A00883E6D /* Intent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE81DE36E3A00883E6D /* Intent.swift */; };
 		79702CEB1DE371C100883E6D /* Predicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CEA1DE371C100883E6D /* Predicate.swift */; };
 		79702D051DE9F3C500883E6D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702D041DE9F3C500883E6D /* Utilities.swift */; };
+		798201B41E2219F0008838E0 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798201B31E2219F0008838E0 /* Error.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,7 @@
 		79702CE81DE36E3A00883E6D /* Intent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Intent.swift; sourceTree = "<group>"; };
 		79702CEA1DE371C100883E6D /* Predicate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predicate.swift; sourceTree = "<group>"; };
 		79702D041DE9F3C500883E6D /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		798201B31E2219F0008838E0 /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 				79702CE81DE36E3A00883E6D /* Intent.swift */,
 				79702CEA1DE371C100883E6D /* Predicate.swift */,
 				79702D041DE9F3C500883E6D /* Utilities.swift */,
+				798201B31E2219F0008838E0 /* Error.swift */,
 			);
 			path = Procedure;
 			sourceTree = "<group>";
@@ -164,7 +167,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Grady Zhuo";
 				TargetAttributes = {
 					79702CC71DE36D0400883E6D = {
@@ -220,6 +223,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				798201B41E2219F0008838E0 /* Error.swift in Sources */,
 				79702D051DE9F3C500883E6D /* Utilities.swift in Sources */,
 				79702CE31DE36E1900883E6D /* Procedure.swift in Sources */,
 				794A2A991E06681800EDB079 /* Protocols.swift in Sources */,
@@ -267,6 +271,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -320,6 +325,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
