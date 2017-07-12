@@ -15,9 +15,9 @@
 		79702CE51DE36E2900883E6D /* Step.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE41DE36E2900883E6D /* Step.swift */; };
 		79702CE71DE36E3300883E6D /* Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE61DE36E3300883E6D /* Action.swift */; };
 		79702CE91DE36E3A00883E6D /* Intent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CE81DE36E3A00883E6D /* Intent.swift */; };
-		79702CEB1DE371C100883E6D /* Predicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702CEA1DE371C100883E6D /* Predicate.swift */; };
 		79702D051DE9F3C500883E6D /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79702D041DE9F3C500883E6D /* Utilities.swift */; };
 		798201B41E2219F0008838E0 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798201B31E2219F0008838E0 /* Error.swift */; };
+		79F4DE591F153E0D00EF2673 /* ConditionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F4DE581F153E0D00EF2673 /* ConditionStep.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,9 +42,9 @@
 		79702CE41DE36E2900883E6D /* Step.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Step.swift; sourceTree = "<group>"; };
 		79702CE61DE36E3300883E6D /* Action.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Action.swift; sourceTree = "<group>"; };
 		79702CE81DE36E3A00883E6D /* Intent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Intent.swift; sourceTree = "<group>"; };
-		79702CEA1DE371C100883E6D /* Predicate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Predicate.swift; sourceTree = "<group>"; };
 		79702D041DE9F3C500883E6D /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		798201B31E2219F0008838E0 /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		79F4DE581F153E0D00EF2673 /* ConditionStep.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConditionStep.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,9 +94,9 @@
 				79702CE41DE36E2900883E6D /* Step.swift */,
 				79702CE61DE36E3300883E6D /* Action.swift */,
 				79702CE81DE36E3A00883E6D /* Intent.swift */,
-				79702CEA1DE371C100883E6D /* Predicate.swift */,
 				79702D041DE9F3C500883E6D /* Utilities.swift */,
 				798201B31E2219F0008838E0 /* Error.swift */,
+				79F4DE581F153E0D00EF2673 /* ConditionStep.swift */,
 			);
 			path = Procedure;
 			sourceTree = "<group>";
@@ -225,10 +225,10 @@
 			files = (
 				798201B41E2219F0008838E0 /* Error.swift in Sources */,
 				79702D051DE9F3C500883E6D /* Utilities.swift in Sources */,
+				79F4DE591F153E0D00EF2673 /* ConditionStep.swift in Sources */,
 				79702CE31DE36E1900883E6D /* Procedure.swift in Sources */,
 				794A2A991E06681800EDB079 /* Protocols.swift in Sources */,
 				79702CE91DE36E3A00883E6D /* Intent.swift in Sources */,
-				79702CEB1DE371C100883E6D /* Predicate.swift in Sources */,
 				79702CE71DE36E3300883E6D /* Action.swift in Sources */,
 				79702CE51DE36E2900883E6D /* Step.swift in Sources */,
 			);

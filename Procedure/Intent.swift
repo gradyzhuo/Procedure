@@ -18,7 +18,6 @@ public struct Intent : SimpleIntent  {
     
     public let name: String
     public let value: Any?
-//    public let gift: [String: Any]?
     
     public init(name: String, value: Any? = nil){
         self.name = name

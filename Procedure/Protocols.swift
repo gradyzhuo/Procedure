@@ -8,19 +8,31 @@
 
 import Foundation
 
+public protocol Identitiable {
+    var identifier: String { get }
+}
+
+
 public protocol RunnableStep : Identitiable {
     func run(with: Intents)
 }
 
-internal protocol _RunnableStep {
-    var _previous: RunnableStep? { set get }
+public protocol SequenceStep: RunnableStep {
+    var last:SimpleStep { get }
+    
+    @discardableResult mutating func `continue`<T:SimpleStep>(byStep step:T)->T
 }
 
-public protocol SimpleStep : RunnableStep, SequenceStep {
-    var previous: RunnableStep? { get }
+public protocol SimpleStep : SequenceStep {
+    
+    /**
+     (readonly)
+     */
+    var previous: SimpleStep? { get }
     var next: SimpleStep? { set get }
 }
 
+let kPrevious = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)
 extension SimpleStep {
     
     public var last:SimpleStep{
@@ -32,12 +44,15 @@ extension SimpleStep {
         
         return next
     }
-}
-
-public protocol SequenceStep: RunnableStep {
-    var last:SimpleStep { get }
     
-    @discardableResult mutating func `continue`<T:SimpleStep>(byStep step:T)->T
+    public internal(set) var previous: SimpleStep?{
+        set{
+            objc_setAssociatedObject(self, kPrevious, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        get{
+            return objc_getAssociatedObject(self, kPrevious) as? SimpleStep
+        }
+    }
 }
 
 public protocol Copyable : class, NSCopying{ }
@@ -72,3 +87,43 @@ public protocol ActionTrigger {
 //        
 //    }
 //}
+
+let k = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)
+public protocol Shareable : Copyable, Identitiable{
+    
+}
+
+extension Shareable {
+    
+    private static var instances:[String:Self] {
+        
+        set{
+            objc_setAssociatedObject(self, k, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        get{
+            guard let instances = objc_getAssociatedObject(self, k) as? [String:Self] else{
+                
+                let newInstances = [String:Self]()
+                Self.instances = newInstances
+                
+                return newInstances
+            }
+            
+            
+            return instances
+        }
+    }
+    
+    public static func shared(forKey key: String)->Self?{
+        return instances[key]?.copy
+    }
+    
+    public func share()->String{
+        self.share(forKey: identifier)
+        return identifier
+    }
+    
+    public func share(forKey key:String){
+        Self.instances[key] = copy
+    }
+}

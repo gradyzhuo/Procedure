@@ -9,6 +9,7 @@
 import Foundation
 
 extension Action {
+    
     //MARK: typealias defines
     
     public enum Result {
@@ -38,11 +39,11 @@ extension Action {
     }
 }
 
-open class Action : Identitiable, Hashable {
+open class Action : Identitiable, Hashable, Shareable, CustomStringConvertible {
     
-    public typealias TaskBlock = (Intents, @escaping (Result)->Void)->Void
-    
-    public internal(set) var task: TaskBlock
+    public typealias Task = (Intents, @escaping (Result)->Void)->Void
+    public internal(set) var identifier: String
+    public internal(set) var task: Task
 
     public var isCancelled:Bool{
         return self.runningItem?.isCancelled ?? false
@@ -54,11 +55,12 @@ open class Action : Identitiable, Hashable {
         return self.identifier.hashValue
     }
     
-    public init(do task: @escaping TaskBlock){
+    public init(identifier:String = Utils.Generate.identifier, do task: @escaping Task){
+        self.identifier = identifier
         self.task = task
     }
     
-    public func run(withGifts inputs: Intents, inQueue queue: DispatchQueue, completion:@escaping (Action, Result)->Void){
+    public func run(with inputs: Intents, inQueue queue: DispatchQueue = .main, completion:((Action, Result)->Void)? = nil){
         
         let taskClosure = self.task
         let action = self
@@ -66,7 +68,7 @@ open class Action : Identitiable, Hashable {
         let workItem = DispatchWorkItem {
             taskClosure(inputs){ result in
                 //Waitting for the completion handler be called.
-                completion(action, result)
+                completion?(action, result)
             }
         }
         
@@ -86,6 +88,14 @@ open class Action : Identitiable, Hashable {
         }
         
     }
+    
+    public var description: String{
+        return "Action(\(identifier)): \(task)"
+    }
+    
+    deinit {
+        print("deinit action : \(identifier)")
+    }
 }
 
 public func ==(lhs: Action, rhs: Action)->Bool{
@@ -96,7 +106,7 @@ extension Action : Copyable {
     
     public func copy(with zone: NSZone? = nil) -> Any {
         let taskCopy = self.task
-        return Action(do: taskCopy)
+        return Action(identifier: identifier, do: taskCopy)
     }
     
     
