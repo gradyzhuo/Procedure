@@ -14,7 +14,7 @@ public protocol Identitiable {
 
 
 public protocol RunnableStep : Identitiable {
-    func run(with: Intents)
+    func run(with intents: Intents)
 }
 
 public protocol SequenceStep: RunnableStep {
@@ -52,6 +52,13 @@ extension SimpleStep {
         get{
             return objc_getAssociatedObject(self, kPrevious) as? SimpleStep
         }
+    }
+    
+    @discardableResult
+    public func `continue`<T>(byStep step:T)->T where T : SimpleStep{
+        var last = self.last
+        last.next = step
+        return step
     }
 }
 

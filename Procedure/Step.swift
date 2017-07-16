@@ -142,10 +142,9 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
         case .finish:
             print("finished")
         case .next:
-            self.goNext(withIntents: newInputs)
+            self.goNext(with: newInputs)
         case .previous:
-            self.back(withIntents: newInputs)
-            self.previous?.run(with: newInputs)
+            self.back(with: newInputs)
         case .jump(let other):
             other.run(with: newInputs)
         }
@@ -153,12 +152,12 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
     }
     
     
-    public func goNext(withIntents inputs: Intents){
-        self.next?.run(with: inputs)
+    public func goNext(with intents: Intents){
+        self.next?.run(with: intents)
     }
     
-    public func back(withIntents inputs: Intents){
-        self.previous?.run(with: inputs)
+    public func back(with intents: Intents){
+        self.previous?.run(with: intents)
     }
     
     public var description: String{
@@ -176,12 +175,6 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
 }
 
 extension Step {
-    
-    public func `continue`<T:SimpleStep>(byStep step:T)->T{
-        var last = self.last
-        last.next = step
-        return step
-    }
     
     //MARK: Convenience:
     public func `continue`(byAction action: Action)->Step{
