@@ -19,11 +19,14 @@ extension Step {
     }
 }
 
-open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareable, CustomStringConvertible {
+open class Step : SimpleStep, Invocable, Flowable, Shareable, CustomStringConvertible {
 
     public typealias IntentType = Intent
     
-    public internal(set) var identifier: String
+    public var identifier: String{
+        return queue.label
+    }
+    public lazy var name: String = self.identifier
     
     public internal(set) var actions: [Action] = []
     
@@ -50,21 +53,15 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
         self.init(action: Action(do: task))
     }
     
-    internal init(actions:[Action] = [], identifier: String = Utils.Generate.identifier, attributes: DispatchQueue.Attributes = .concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency = .inherit, qos: DispatchQoS = .userInteractive, other: Step? = nil){
+    internal init(actions:[Action] = [], attributes: DispatchQueue.Attributes = .concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency = .inherit, qos: DispatchQoS = .userInteractive, other: Step? = nil){
         self.autoreleaseFrequency = autoreleaseFrequency
         self.attributes = attributes
         self.qos = qos
-        self.identifier = identifier
         
-        self.queue = DispatchQueue(label: identifier, qos: qos, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, target: other?.queue)
+        self.queue = DispatchQueue(label: Utils.Generate.identifier(), qos: qos, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, target: other?.queue)
         
-        self.add(actions: actions)
+        self.invoke(actions: actions)
         
-    }
-    
-    public convenience init(actions acts: [Action], queue other:DispatchQueue){
-        self.init(identifier: other.label)
-        self.add(actions: acts.map{ $0.copy })
     }
     
     public convenience init(action: Action) {
@@ -72,16 +69,16 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
     }
     
     public required convenience init(actions acts: [Action] = []) {
-        self.init(actions: acts, queue: DispatchQueue(label: Utils.Generate.identifier))
+        self.init(actions: acts, attributes: .concurrent, autoreleaseFrequency: .inherit, qos: .userInteractive, other: nil)
     }
     
-    public func add(actions acts: [Action]){
+    public func invoke(actions acts: [Action]){
         for act in acts {
-            self.add(action: act)
+            self.invoke(action: act)
         }
     }
     
-    public func add(action act: Action){
+    public func invoke(action act: Action){
         actions.append(act)
     }
     
@@ -174,20 +171,6 @@ open class Step : SimpleStep, ActionTrigger, RunnableStep, SequenceStep, Shareab
     }
 }
 
-extension Step {
-    
-    //MARK: Convenience:
-    public func `continue`(byAction action: Action)->Step{
-        let nextStep = Step(actions: [action])
-        return self.continue(byStep: nextStep)
-    }
-    
-    public func `continue`(byActions actions: [Action])->Step{
-        let nextStep = Step(actions: actions)
-        return self.continue(byStep: nextStep)
-    }
-}
-
 extension Step : Hashable {
     
     public var hashValue: Int{
@@ -203,8 +186,8 @@ extension Step : Copyable{
     
     public func copy(with zone: NSZone? = nil) -> Any {
         let actionsCopy = self.actions.map{ $0.copy }
-        let aCopy = Step(identifier: identifier, attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, qos: qos)
-        aCopy.add(actions: actionsCopy)
+        let aCopy = Step(attributes: attributes, autoreleaseFrequency: autoreleaseFrequency, qos: qos)
+        aCopy.invoke(actions: actionsCopy)
         aCopy.flowHandler = flowHandler
         return aCopy
     }
@@ -212,9 +195,9 @@ extension Step : Copyable{
 
 extension Step {
     
-    public func add(do block: @escaping Action.Task)->Action{
+    public func invoke(do block: @escaping Action.Task)->Action{
         let act = Action(do: block)
-        self.add(action: act)
+        self.invoke(action: act)
         return act
     }
 }

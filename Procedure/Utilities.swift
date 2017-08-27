@@ -16,10 +16,10 @@ public struct Utils {
     
 }
 
-internal extension Utils{
+extension Utils{
     
-    struct Generate{
-        static var identifier:String {
+    public struct Generate{
+        public static func identifier()->String {
             return UUID().uuidString
         }
     }

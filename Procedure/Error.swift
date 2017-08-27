@@ -40,6 +40,9 @@ extension Procedure.Error : ExpressibleByStringLiteral{
 }
 
 extension Procedure.Error : SimpleIntent {
+    public var command: String {
+        return name
+    }
     
     public var value: Any? {
         return userInfo

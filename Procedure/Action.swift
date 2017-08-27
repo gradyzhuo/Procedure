@@ -55,7 +55,7 @@ open class Action : Identitiable, Hashable, Shareable, CustomStringConvertible {
         return self.identifier.hashValue
     }
     
-    public init(identifier:String = Utils.Generate.identifier, do task: @escaping Task){
+    public init(identifier:String = Utils.Generate.identifier(), do task: @escaping Task){
         self.identifier = identifier
         self.task = task
     }

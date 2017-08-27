@@ -12,37 +12,48 @@ public protocol Identitiable {
     var identifier: String { get }
 }
 
-
-public protocol RunnableStep : Identitiable {
-    func run(with intents: Intents)
+private let kIdentifier = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)
+extension Identitiable {
+    public var identifier: String {
+        get{
+            guard let id = objc_getAssociatedObject(self, kIdentifier) as? String else{
+                let identifier = Utils.Generate.identifier()
+                objc_setAssociatedObject(self, kIdentifier, identifier, .OBJC_ASSOCIATION_COPY)
+                return identifier
+            }
+            return id
+        }
+    }
 }
 
-public protocol SequenceStep: RunnableStep {
-    var last:SimpleStep { get }
-    
-    @discardableResult mutating func `continue`<T:SimpleStep>(byStep step:T)->T
-}
-
-public protocol SimpleStep : SequenceStep {
-    
+public protocol Flowable: Identitiable {
     /**
      (readonly)
      */
     var previous: SimpleStep? { get }
     var next: SimpleStep? { set get }
+    
+    var last:SimpleStep { get }
+}
+
+
+public protocol SimpleStep : Flowable {
+    
+    var name: String { set get }
+    
+    func run(with intents: Intents)
 }
 
 let kPrevious = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)
 extension SimpleStep {
     
     public var last:SimpleStep{
-        var next: SimpleStep = self
+        var nextStep: SimpleStep = self
         
-        while let n = next.next {
-            next = n
+        while let next = nextStep.next {
+            nextStep = next
         }
-        
-        return next
+        return nextStep
     }
     
     public internal(set) var previous: SimpleStep?{
@@ -52,13 +63,6 @@ extension SimpleStep {
         get{
             return objc_getAssociatedObject(self, kPrevious) as? SimpleStep
         }
-    }
-    
-    @discardableResult
-    public func `continue`<T>(byStep step:T)->T where T : SimpleStep{
-        var last = self.last
-        last.next = step
-        return step
     }
 }
 
@@ -72,28 +76,13 @@ extension Copyable {
     
 }
 
-public protocol ActionTrigger {
+public protocol Invocable {
     var actions: [Action] { get }
     
     init(actions: [Action])
     
-    mutating func add(actions: [Action])
+    mutating func invoke(actions: [Action])
 }
-
-//extension Array : ActionTrigger where Element : Action {
-//    public var actions: [Action]{
-//        return self as! [Action]
-//    }
-//    
-//    public init(actions: [Action]) {
-//        self = [Action]() as! Array<_>
-//        
-//    }
-//    
-//    public mutating func add(actions: [Action]){
-//        
-//    }
-//}
 
 let k = UnsafeMutableRawPointer.allocate(bytes: 0, alignedTo: 0)
 public protocol Shareable : Copyable, Identitiable{

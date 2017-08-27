@@ -9,32 +9,31 @@
 import Foundation
 
 open class Procedure : SimpleStep {
-    
-    public private(set) var first: SimpleStep
-    public private(set) var last: SimpleStep
+    public private(set) var start: SimpleStep
+    public private(set) var end: SimpleStep
     
     public var next: SimpleStep?{
         set{
-            last.next = newValue
+            end.next = newValue
         }
         get{
-            return last.next
+            return end.next
         }
     }
     
     public func run(with intents: Intents) {
-        self.first.run(with: intents)
+        start.run(with: intents)
     }
     
-    public var identifier: String = ""
+    public lazy var name: String = self.identifier
     
-    public init(first: SimpleStep) {
-        self.first = first
-        self.last = first.last
+    public init(start: SimpleStep) {
+        self.start = start
+        self.end = start.last
     }
     
     public func step(at index: Int)->SimpleStep?{
-        var target: SimpleStep? = first
+        var target: SimpleStep? = start
         for _ in 0...index{
             target = target?.next
         }
@@ -42,11 +41,11 @@ open class Procedure : SimpleStep {
     }
     
     public func extend(with newLastStep: SimpleStep){
-        last.next = newLastStep
-        last = newLastStep.last
+        end.next = newLastStep
+        end = newLastStep.last
     }
     
-    public func syncLastStep(){
-        last = first.last
+    public func syncEndStep(){
+        end = start.last
     }
 }

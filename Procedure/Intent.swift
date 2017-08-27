@@ -10,17 +10,17 @@ import Foundation
 
 
 public protocol SimpleIntent {
-    var name: String { get }
+    var command: String { get }
     var value: Any? { get }
 }
 
 public struct Intent : SimpleIntent  {
     
-    public let name: String
+    public let command: String
     public let value: Any?
     
-    public init(name: String, value: Any? = nil){
-        self.name = name
+    public init(command: String, value: Any? = nil){
+        self.command = command
         self.value = value
     }
     
@@ -32,7 +32,7 @@ extension Intent : ExpressibleByStringLiteral{
     public typealias UnicodeScalarLiteralType = String
     
     public init(stringLiteral value: StringLiteralType){
-        self = Intent(name: value)
+        self = Intent(command: value)
     }
     
     public init(extendedGraphemeClusterLiteral value: ExtendedGraphemeClusterLiteralType) {
@@ -50,12 +50,16 @@ public struct Intents {
     public typealias IntentType = SimpleIntent
     internal var storage: [String: IntentType] = [:]
     
+    public var commands: [String] {
+        return storage.keys.map{ $0 }
+    }
+    
     public var count:Int{
         return storage.count
     }
     
     public mutating func add(intent: IntentType){
-        storage[intent.name] = intent
+        storage[intent.command] = intent
     }
     
     public mutating func add(intents: [IntentType]){
@@ -75,7 +79,7 @@ public struct Intents {
     }
     
     public mutating func remove(intent: IntentType){
-        storage.removeValue(forKey: intent.name)
+        storage.removeValue(forKey: intent.command)
     }
     
     public func intent(for name: String)-> IntentType! {
@@ -125,7 +129,7 @@ extension Intents : ExpressibleByDictionaryLiteral{
     
     public init(dictionaryLiteral elements: (Key, Value)...) {
         for (key, value) in elements {
-            let intent = Intent(name: key, value: value)
+            let intent = Intent(command: key, value: value)
             self.add(intent: intent)
         }
     }
